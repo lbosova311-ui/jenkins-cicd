@@ -1,1 +1,1 @@
-   <?php echo "Hello from Jenkins CI/CD! Build : " . getenv('BUILD');
+   <?php echo "Hello from Jenkins CI/CD! Build: " . getenv('BUILD');
