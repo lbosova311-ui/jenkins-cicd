@@ -1,14 +1,23 @@
 pipeline {
     agent any
-        triggers {
+
+    triggers {
         pollSCM('H/2 * * * *')
     }
+
     stages {
         stage('Build') {
             steps {
                 script { run("docker build -t myapp:${env.BUILD_NUMBER} .") }
             }
         }
+
+        stage('Test') {
+            steps {
+                script { run("docker run --rm myapp:${env.BUILD_NUMBER} php -l /var/www/html/index.php") }
+            }
+        }
+
         stage('Deploy') {
             steps {
                 script {
@@ -17,12 +26,18 @@ pipeline {
                 }
             }
         }
+
         stage('Smoke test') {
             steps {
                 sleep 5
-                script { run("curl -f http://localhost:8081") }
+                script { run("curl -fs http://localhost:8081 | grep 'Build: ${env.BUILD_NUMBER}'") }
             }
         }
+    }
+
+    post {
+        success { echo "Build ${env.BUILD_NUMBER} deployed successfully" }
+        failure { echo "Build ${env.BUILD_NUMBER} failed, old version is still running" }
     }
 }
 
